@@ -1,0 +1,75 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: renfound_app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8090:8090"
+    environment:
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - APP_SERVER_HOST=${APP_SERVER_HOST}
+      - APP_SERVER_PORT=${APP_SERVER_PORT}
+      - APP_JWT_ACCESSSECRET=${APP_JWT_ACCESSSECRET}
+      - APP_JWT_REFRESHSECRET=${APP_JWT_REFRESHSECRET}
+      - APP_JWT_ACCESSTTL=${APP_JWT_ACCESSTTL}
+      - APP_JWT_REFRESHTTL=${APP_JWT_REFRESHTTL}
+      - APP_LOGGER_LEVEL=${APP_LOGGER_LEVEL}
+      - APP_LOGGER_ENCODING=${APP_LOGGER_ENCODING}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+    networks:
+      - renfound_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8090/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    volumes:
+      - app_data:/app/data
+    command: >
+      sh -c "migrate -path=./migrations -database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable up && 
+             ./renfound_app"
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: renfound_postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - renfound_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+networks:
+  renfound_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  app_data:
+    driver: local

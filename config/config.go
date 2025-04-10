@@ -13,11 +13,17 @@ import (
 
 // Config holds the application configurations
 type Config struct {
-	DB     PostgresConfig `mapstructure:"postgres"`
-	Server ServerConfig   `mapstructure:"server"`
-	JWT    JWTConfig      `mapstructure:"jwt"`
-	Redis  RedisConfig    `mapstructure:"redis"`
-	Logger LoggerConfig   `mapstructure:"logger"`
+	DB       PostgresConfig `mapstructure:"postgres"`
+	Server   ServerConfig   `mapstructure:"server"`
+	JWT      JWTConfig      `mapstructure:"jwt"`
+	Redis    RedisConfig    `mapstructure:"redis"`
+	Logger   LoggerConfig   `mapstructure:"logger"`
+	Telegram TelegramConfig `mapstructure:"telegram"` // Add this line
+}
+
+// TelegramConfig holds Telegram configurations
+type TelegramConfig struct {
+	BotToken string `mapstructure:"bottoken"`
 }
 
 // PostgresConfig holds PostgreSQL configurations
@@ -190,6 +196,7 @@ func bindEnvs() {
 		"logger.level":      "APP_LOGGER_LEVEL",
 		"logger.encoding":   "APP_LOGGER_ENCODING",
 		"logger.outputpath": "APP_LOGGER_OUTPUTPATH",
+		"telegram.bottoken": "TELEGRAM_BOT_TOKEN",
 	}
 
 	for configKey, envVar := range envBindings {
