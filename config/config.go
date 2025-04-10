@@ -103,7 +103,7 @@ func LoadConfig() (*AppConfig, error) {
 
 	// Log successful configuration loading
 	logger.Info("Configuration loaded successfully",
-		zap.String("db_schema", "postgres://****:****@"+config.DB.URL),
+		zap.String("db_schema", "postgres://****:****@"+strings.Split(config.DB.URL, "@")[1]),
 		zap.String("server_host", config.Server.Host),
 		zap.String("server_port", config.Server.Port),
 	)

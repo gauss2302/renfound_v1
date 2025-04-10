@@ -77,11 +77,10 @@ func (a *TelegramAuth) ValidateInitData(ctx context.Context, initData string) (*
 	}
 
 	// Extract user information - checking for nil first
-	if &data.User == nil {
-		a.logger.Warn("No user data in init data")
+	if data.User.ID == 0 {
+		a.logger.Warn("No user data or invalid user ID in init data")
 		return nil, models.ErrInvalidInitData
 	}
-
 	// Now we know the User struct fields, we can safely access them
 	telegramUser := &TelegramUser{
 		ID:        data.User.ID,
